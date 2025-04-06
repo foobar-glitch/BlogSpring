@@ -1,5 +1,6 @@
 package com.example.blog.mariadb.tempUsers;
 
+import com.example.blog.mariadb.users.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,7 +12,10 @@ import org.springframework.web.server.ResponseStatusException;
 public class TempUserController {
 
     @Autowired
-    private TempUserService userService;
+    private TempUserService tempUserService;
+    @Autowired
+    private UserService userService;
+
 
     /**
      * Registers User to the temporary database
@@ -34,7 +38,13 @@ public class TempUserController {
             System.out.println("E-Mail already exists");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        userService.addUserWithPasswordSaltAndRole(username, email, password, "user");
+        TempUser tempUser = tempUserService.getUserByUsername(username);
+        if(tempUser != null){
+            System.out.println("Temp user already registered delete user");
+            tempUserService.deleteUser(tempUser.getTempUserId());
+        }
+
+        tempUserService.addUserWithPasswordSaltAndRole(username, email, password, "user");
     }
 
 }
