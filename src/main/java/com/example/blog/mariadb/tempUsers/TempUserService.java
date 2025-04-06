@@ -1,6 +1,6 @@
-package com.example.blog.mariadb;
+package com.example.blog.mariadb.tempUsers;
 
-import jakarta.persistence.EntityManager;
+import com.example.blog.mariadb.users.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Service;
@@ -14,20 +14,18 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserService {
+public class TempUserService {
 
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private EntityManager entityManager;
+    private TempUserRepository userRepository;
 
 
     @Query("SELECT u FROM User u")
-    public List<User> getAllUsers() {
+    public List<TempUser> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long userId) {
+    public Optional<TempUser> getUserById(Long userId) {
         return userRepository.findById(userId);
     }
 
@@ -35,7 +33,11 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
-    public User saveUser(User user) {
+    public User getUserByEmail(String email){
+        return userRepository.findByEmail(email);
+    }
+
+    public TempUser saveUser(TempUser user) {
         return userRepository.save(user);
     }
 
@@ -96,7 +98,7 @@ public class UserService {
 
     public void addUserWithPasswordSaltAndRole(String username, String email, String password, String role) {
         String salt = generateRandomSalt();
-        User user = new User();
+        TempUser user = new TempUser();
         user.setUsername(username);
         user.setPasswordHash(hashPasswordWithSalt(password, salt));
         user.setSalt(salt);

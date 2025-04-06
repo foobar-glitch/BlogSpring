@@ -1,20 +1,18 @@
-package com.example.blog.mariadb;
+package com.example.blog.mariadb.tempUsers;
 
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.Locale;
-
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "temp_users")
+public class TempUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-generated primary key
-    private Long user_id;
+    private Long tempUserId;
 
     private String username;
     private String email;
-    
+
     private String password;
 
     private String salt;
@@ -27,12 +25,12 @@ public class User {
     private LocalDateTime updatedAt;
 
     // Getters and Setters
-    public Long getUserId() {
-        return user_id;
+    public Long getTempUserId() {
+        return tempUserId;
     }
 
-    public void setUserId(Long userId) {
-        this.user_id = userId;
+    public void setTempUserId(Long tempUserId) {
+        this.tempUserId = tempUserId;
     }
 
     public String getUsername() {
@@ -90,6 +88,7 @@ public class User {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
 
 
 }

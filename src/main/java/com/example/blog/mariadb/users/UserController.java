@@ -1,4 +1,4 @@
-package com.example.blog.mariadb;
+package com.example.blog.mariadb.users;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,7 +45,21 @@ public class UserController {
             System.out.println("Passwords do not match");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
+        if(userService.getUserByUsername(username) != null){
+            System.out.println("User already exists");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        if(userService.getUserByEmail(email) != null){
+            System.out.println("E-Mail already exists");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
         userService.addUserWithPasswordSaltAndRole(username, email, password, "user");
+    }
+
+    @GetMapping("/register/validate")
+    public void validateToken(@RequestParam String token){
+        System.out.println(token);
+
     }
 
     @GetMapping("/authenticate")
