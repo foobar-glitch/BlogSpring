@@ -18,7 +18,7 @@ public class RegisterTable {
     private TempUser tempUser;
 
     @Column(name = "registerToken", nullable = false)
-    private byte[] registerToken;  // Use byte[] for varbinary
+    private String registerToken;
 
     @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
@@ -43,11 +43,11 @@ public class RegisterTable {
         this.tempUser = tempUser;
     }
 
-    public byte[] getRegisterToken() {
+    public String getRegisterToken() {
         return registerToken;
     }
 
-    public void setRegisterToken(byte[] registerToken) {
+    public void setRegisterToken(String registerToken) {
         this.registerToken = registerToken;
     }
 

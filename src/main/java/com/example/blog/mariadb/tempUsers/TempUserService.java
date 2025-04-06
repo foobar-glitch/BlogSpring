@@ -78,27 +78,32 @@ public class TempUserService {
     }
 
     private String hashPasswordWithSalt(String password, String salt) {
+
+        byte[] passwordBytes = password.getBytes();
+        byte[] saltBytes = new BigInteger(salt, 16).toByteArray();
+        // Concatenate password and salt
+        byte[] passwordWithSalt = new byte[passwordBytes.length + saltBytes.length];
+
+        // Copy the first array into the result
+        System.arraycopy(passwordBytes, 0, passwordWithSalt, 0, passwordBytes.length);
+        // Copy the second array into the result starting after the first array
+        System.arraycopy(saltBytes, 0, passwordWithSalt, passwordBytes.length, saltBytes.length);
+
+        return hashValue(passwordWithSalt);
+    }
+
+    private String hashValue(byte[] value) {
+        // Create a MessageDigest instance for SHA-256
+        MessageDigest digest = null;
         try {
-            byte[] passwordBytes = password.getBytes();
-            byte[] saltBytes = new BigInteger(salt, 16).toByteArray();
-            // Concatenate password and salt
-            byte[] passwordWithSalt = new byte[passwordBytes.length + saltBytes.length];
-
-            // Copy the first array into the result
-            System.arraycopy(passwordBytes, 0, passwordWithSalt, 0, passwordBytes.length);
-            // Copy the second array into the result starting after the first array
-            System.arraycopy(saltBytes, 0, passwordWithSalt, passwordBytes.length, saltBytes.length);
-
-            // Create a MessageDigest instance for SHA-256
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-
+            digest = MessageDigest.getInstance("SHA-256");
             // Perform the hashing
-            byte[] hashBytes = digest.digest(passwordWithSalt);
+            byte[] hashBytes = digest.digest(value);
 
             // Return the hashed password as a hex string
             return bytesToHex(hashBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error hashing password", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -118,8 +123,8 @@ public class TempUserService {
 
         RegisterTable registerTable = new RegisterTable();
         String randomRegisterToken = generateRandomSalt();
-        System.out.println(randomRegisterToken);
-        registerTable.setRegisterToken(new BigInteger(randomRegisterToken, 16).toByteArray());
+        System.out.println("Registertoken = " + randomRegisterToken);
+        registerTable.setRegisterToken(hashValue(new BigInteger(randomRegisterToken, 16).toByteArray()));
         registerTable.setCreatedAt(currentTime);
         registerTable.setTempUser(user);
         //Expires in 24 hours
