@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 import static com.example.blog.mariadb.tempUsers.HashingHelper.hashValue;
 
@@ -71,7 +72,14 @@ public class TempUserController {
         }
 
         //check table time...
+        LocalDateTime currentTime = LocalDateTime.now();
+        if(registerTable.getExpiredAt().isAfter(currentTime)){
+            System.out.println("Register Entry expired");
+            registerTableService.delete(registerTable);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
 
+        // Inserting temp user to user
         TempUser tempUser = registerTable.getTempUser();
         User user = new User();
         user.setEmail(tempUser.getEmail());
@@ -83,7 +91,7 @@ public class TempUserController {
         user.setUpdatedAt(tempUser.getUpdatedAt());
 
         userService.saveUser(user);
-
+        tempUserService.deleteUser(tempUser.getTempUserId());
 
     }
 
