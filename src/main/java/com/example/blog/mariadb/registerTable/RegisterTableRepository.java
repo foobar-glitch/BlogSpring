@@ -1,0 +1,6 @@
+package com.example.blog.mariadb.registerTable;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface RegisterTableRepository extends JpaRepository<RegisterTable, Long> {
+}

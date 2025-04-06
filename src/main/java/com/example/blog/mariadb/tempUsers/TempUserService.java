@@ -1,6 +1,9 @@
 package com.example.blog.mariadb.tempUsers;
 
+import com.example.blog.mariadb.registerTable.RegisterTable;
+import com.example.blog.mariadb.registerTable.RegisterTableRepository;
 import com.example.blog.mariadb.users.User;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Service;
@@ -17,41 +20,44 @@ import java.util.Optional;
 public class TempUserService {
 
     @Autowired
-    private TempUserRepository userRepository;
+    private TempUserRepository tempUserRepository;
+
+    @Autowired
+    private RegisterTableRepository registerTableRepository;
 
 
     @Query("SELECT u FROM User u")
     public List<TempUser> getAllUsers() {
-        return userRepository.findAll();
+        return tempUserRepository.findAll();
     }
 
     public Optional<TempUser> getUserById(Long userId) {
-        return userRepository.findById(userId);
+        return tempUserRepository.findById(userId);
     }
 
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public TempUser getUserByUsername(String username) {
+        return tempUserRepository.findByUsername(username);
     }
 
-    public User getUserByEmail(String email){
-        return userRepository.findByEmail(email);
+    public TempUser getUserByEmail(String email){
+        return tempUserRepository.findByEmail(email);
     }
 
     public TempUser saveUser(TempUser user) {
-        return userRepository.save(user);
+        return tempUserRepository.save(user);
     }
 
     public void deleteUser(Long userId) {
-        userRepository.deleteById(userId);
+        tempUserRepository.deleteById(userId);
     }
 
 
-    public Optional<User> findByUsernamePassword(String username, String password) {
-        User user = userRepository.findByUsername(username);
+    public Optional<TempUser> findByUsernamePassword(String username, String password) {
+        TempUser user = tempUserRepository.findByUsername(username);
         if (user == null) {
             return Optional.empty();
         }
-        List<User> users = userRepository.findByUsernameAndPasswordAndSalt(username, password, user.getSalt());
+        List<TempUser> users = tempUserRepository.findByUsernameAndPasswordAndSalt(username, password, user.getSalt());
         return (users != null && !users.isEmpty()) ? Optional.of(users.get(0)) : Optional.empty();
     }
 
@@ -97,16 +103,31 @@ public class TempUserService {
     }
 
     public void addUserWithPasswordSaltAndRole(String username, String email, String password, String role) {
+        LocalDateTime currentTime = LocalDateTime.now();
         String salt = generateRandomSalt();
+
         TempUser user = new TempUser();
         user.setUsername(username);
         user.setPasswordHash(hashPasswordWithSalt(password, salt));
         user.setSalt(salt);
         user.setEmail(email);
         user.setRole(role);
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
-        userRepository.save(user);
+        user.setCreatedAt(currentTime);
+        user.setUpdatedAt(currentTime);
+        tempUserRepository.save(user);
+
+        RegisterTable registerTable = new RegisterTable();
+        String randomRegisterToken = generateRandomSalt();
+        System.out.println(randomRegisterToken);
+        registerTable.setRegisterToken(new BigInteger(randomRegisterToken, 16).toByteArray());
+        registerTable.setCreatedAt(currentTime);
+        registerTable.setTempUser(user);
+        //Expires in 24 hours
+        registerTable.setExpiredAt(currentTime.plusHours(24));
+        registerTableRepository.save(registerTable);
+
+
+
     }
 
 

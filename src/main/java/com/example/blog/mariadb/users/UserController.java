@@ -35,26 +35,6 @@ public class UserController {
         return userService.findByUsernamePassword(username, password);
     }
 
-    @PostMapping("/register")
-    public void register(@RequestParam String username,
-                         @RequestParam String email,
-                         @RequestParam String password,
-                         @RequestParam String confirmPassword
-                         ){
-        if(!password.equals(confirmPassword)){
-            System.out.println("Passwords do not match");
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-        if(userService.getUserByUsername(username) != null){
-            System.out.println("User already exists");
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-        if(userService.getUserByEmail(email) != null){
-            System.out.println("E-Mail already exists");
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-        userService.addUserWithPasswordSaltAndRole(username, email, password, "user");
-    }
 
     @GetMapping("/register/validate")
     public void validateToken(@RequestParam String token){
