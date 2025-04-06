@@ -1,12 +1,20 @@
 package com.example.blog.mariadb.tempUsers;
 
+import com.example.blog.mariadb.registerTable.RegisterTable;
+import com.example.blog.mariadb.registerTable.RegisterTableRepository;
+import com.example.blog.mariadb.users.User;
 import com.example.blog.mariadb.users.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigInteger;
+
+import static com.example.blog.mariadb.tempUsers.HashingHelper.hashValue;
 
 @RestController
 public class TempUserController {
@@ -15,6 +23,8 @@ public class TempUserController {
     private TempUserService tempUserService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private RegisterTableRepository registerTableService;
 
 
     /**
@@ -46,5 +56,36 @@ public class TempUserController {
 
         tempUserService.addUserWithPasswordSaltAndRole(username, email, password, "user");
     }
+
+
+    @GetMapping("/register/validate")
+    public void validateToken(@RequestParam String token){
+        System.out.println(token);
+        String hashedToken = hashValue(new BigInteger(token, 16).toByteArray());
+
+
+        RegisterTable registerTable = registerTableService.findByRegisterToken(hashedToken);
+        if(registerTable == null){
+            System.out.println("This entry does not exist");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        //check table time...
+
+        TempUser tempUser = registerTable.getTempUser();
+        User user = new User();
+        user.setEmail(tempUser.getEmail());
+        user.setRole(tempUser.getRole());
+        user.setSalt(tempUser.getSalt());
+        user.setUsername(tempUser.getUsername());
+        user.setPasswordHash(tempUser.getPasswordHash());
+        user.setCreatedAt(tempUser.getCreatedAt());
+        user.setUpdatedAt(tempUser.getUpdatedAt());
+
+        userService.saveUser(user);
+
+
+    }
+
 
 }

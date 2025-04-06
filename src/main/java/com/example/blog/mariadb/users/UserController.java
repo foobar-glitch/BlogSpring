@@ -36,11 +36,7 @@ public class UserController {
     }
 
 
-    @GetMapping("/register/validate")
-    public void validateToken(@RequestParam String token){
-        System.out.println(token);
 
-    }
 
     @GetMapping("/authenticate")
     public String authenticate(){
