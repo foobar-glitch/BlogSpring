@@ -5,13 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import static com.example.blog.mariadb.tempUsers.HashingHelper.hashPasswordWithSalt;
 
 @Service
 public class UserService {
@@ -53,7 +50,8 @@ public class UserService {
         if (user == null) {
             return Optional.empty();
         }
-        List<User> users = userRepository.findByUsernameAndPasswordAndSalt(username, password, user.getSalt());
+        String passwordHash = hashPasswordWithSalt(password, user.getSalt());
+        List<User> users = userRepository.findByUsernameAndPassword(username, passwordHash);
         return (users != null && !users.isEmpty()) ? Optional.of(users.get(0)) : Optional.empty();
     }
 

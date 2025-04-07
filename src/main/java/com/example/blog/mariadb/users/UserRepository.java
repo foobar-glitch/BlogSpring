@@ -10,8 +10,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByUsername(String username);
 
     User findByEmail(String email);
-
-    @Query(value = "SELECT * FROM users u WHERE u.username = :username AND u.password = SHA2(CONCAT(:password, UNHEX(:salt)), 256)", nativeQuery = true)
-    List<User> findByUsernameAndPasswordAndSalt(String username, String password, String salt);
+    List<User> findByUsernameAndPassword(String username, String password);
 
 }
