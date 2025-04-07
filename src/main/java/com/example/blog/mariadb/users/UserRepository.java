@@ -10,6 +10,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByUsername(String username);
 
     User findByEmail(String email);
+    //password hash (using salt)
     List<User> findByUsernameAndPassword(String username, String password);
 
 }
