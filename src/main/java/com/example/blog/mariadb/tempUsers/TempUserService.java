@@ -54,16 +54,6 @@ public class TempUserService {
     }
 
 
-    public Optional<TempUser> findByUsernamePassword(String username, String password) {
-        TempUser user = tempUserRepository.findByUsername(username);
-        if (user == null) {
-            return Optional.empty();
-        }
-        List<TempUser> users = tempUserRepository.findByUsernameAndPasswordAndSalt(username, password, user.getSalt());
-        return (users != null && !users.isEmpty()) ? Optional.of(users.get(0)) : Optional.empty();
-    }
-
-
     public void addUserWithPasswordSaltAndRole(String username, String email, String password, String role) {
         LocalDateTime currentTime = LocalDateTime.now();
         String salt = generateRandomSalt();
