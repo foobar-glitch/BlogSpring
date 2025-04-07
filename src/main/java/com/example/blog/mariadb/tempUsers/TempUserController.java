@@ -61,9 +61,7 @@ public class TempUserController {
 
     @GetMapping("/register/validate")
     public void validateToken(@RequestParam String token){
-        System.out.println(token);
         String hashedToken = hashValue(new BigInteger(token, 16).toByteArray());
-
 
         RegisterTable registerTable = registerTableService.findByRegisterToken(hashedToken);
         if(registerTable == null){
@@ -73,7 +71,7 @@ public class TempUserController {
 
         //check table time...
         LocalDateTime currentTime = LocalDateTime.now();
-        if(registerTable.getExpiredAt().isAfter(currentTime)){
+        if(registerTable.getExpiredAt().isBefore(currentTime)){
             System.out.println("Register Entry expired");
             registerTableService.delete(registerTable);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
