@@ -89,6 +89,7 @@ public class TempUserController {
         user.setUpdatedAt(tempUser.getUpdatedAt());
 
         userService.saveUser(user);
+        registerTableService.delete(registerTable);
         tempUserService.deleteUser(tempUser.getTempUserId());
 
     }
