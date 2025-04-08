@@ -45,14 +45,13 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public void login(@RequestParam String username, @RequestParam String password, HttpServletRequest request){
+    public void login(@RequestParam String username, @RequestParam String password,
+                      HttpServletRequest request){
         Optional<UserTable> optionalUserTable= userService.findByUsernamePassword(username, password);
         if(optionalUserTable.isEmpty()){
             return;
         }
         UserTable userTable = optionalUserTable.get();
-
-
         LocalDateTime currentTime = LocalDateTime.now();
 
         CookieTable cookieTable = new CookieTable();
@@ -63,6 +62,10 @@ public class UserController {
             System.out.println("No Cookie set");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
+        //If the entry already exists delete it
+        Optional<CookieTable> optionalCookieTable = cookieTableService.findByCookieData(hashValue(cookieId.getBytes()));
+        optionalCookieTable.ifPresent(table -> cookieTableService.deleteById(table.getCookieId()));
+
 
         cookieTable.setUserId(userTable.getUserId());
         cookieTable.setCookieData(hashValue(cookieId.getBytes()));
