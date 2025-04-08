@@ -1,21 +1,32 @@
 package com.example.blog.mariadb.users;
 
+import com.example.blog.mariadb.cookieTable.CookieTable;
+import com.example.blog.mariadb.cookieTable.CookieTableService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.example.blog.HashingHelper.bytesToHex;
+import static com.example.blog.HashingHelper.hashValue;
 
 @RestController
 public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CookieTableService cookieTableService;
 
     @GetMapping("/users")
     public List<UserTable> getUsers() {
@@ -34,18 +45,32 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public User login(@RequestParam String username, @RequestParam String password){
+    public void login(@RequestParam String username, @RequestParam String password, HttpServletRequest request){
         Optional<UserTable> optionalUserTable= userService.findByUsernamePassword(username, password);
         User user = new User();
         if(optionalUserTable.isEmpty()){
-            return user;
+            return;
         }
         UserTable userTable = optionalUserTable.get();
-        user.setUsername(userTable.getUsername());
-        user.setRole(userTable.getRole());
-        user.setEmail(userTable.getEmail());
 
-        return user;
+
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        CookieTable cookieTable = new CookieTable();
+
+        // hashed cookie Id
+        String cookieId = readCookie(request);
+        if(cookieId == null){
+            System.out.println("No Cookie set");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        cookieTable.setUserId(userTable.getUserId());
+        cookieTable.setCookieData(hashValue(cookieId.getBytes()));
+        cookieTable.setCreatedAt(currentTime);
+        cookieTable.setExpiredAt(currentTime.plusMinutes(10));
+
+        cookieTableService.save(cookieTable);
     }
 
 
@@ -79,18 +104,49 @@ public class UserController {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if ("token".equals(cookie.getName())) {
-                    return "Cookie value: " + cookie.getValue();
+                    return cookie.getValue();
                 }
             }
         }
-        return "Cookie not found!";
+        return null;
     }
 
 
-
-
+    //Authenticate using cookie
     @GetMapping("/authenticate")
-    public String authenticate(){
-        return "Hello";
+    public User authenticate(HttpServletRequest request){
+        LocalDateTime currentTime = LocalDateTime.now();
+        String cookie = readCookie(request);
+        if(cookie == null){
+            System.out.println("No Cookie Set");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        Optional<CookieTable> optionalCookieTable = cookieTableService.findByCookieData(hashValue(cookie.getBytes()));
+        if(optionalCookieTable.isEmpty()){
+            System.out.println("Did not login");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        CookieTable cookieTable = optionalCookieTable.get();
+
+        if(currentTime.isAfter(cookieTable.getExpiredAt())){
+            cookieTableService.deleteById(cookieTable.getCookieId());
+            System.out.println("Cookie expired");
+            return null;
+        }
+
+
+        Optional<UserTable> optionalUserTable = userService.getUserById(cookieTable.getUserId());
+        if(optionalUserTable.isEmpty()){
+            System.out.println("Internal Error: User not found");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        UserTable userTable = optionalUserTable.get();
+        User user = new User();
+        user.setUsername(userTable.getUsername());
+        user.setRole(userTable.getRole());
+        user.setEmail(userTable.getEmail());
+        return user;
+
     }
 }

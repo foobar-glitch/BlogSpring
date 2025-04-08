@@ -1,4 +1,4 @@
-package com.example.blog.mariadb.tempUsers;
+package com.example.blog;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;

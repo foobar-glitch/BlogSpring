@@ -15,7 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
-import static com.example.blog.mariadb.tempUsers.HashingHelper.hashValue;
+import static com.example.blog.HashingHelper.hashValue;
 
 @RestController
 public class TempUserController {

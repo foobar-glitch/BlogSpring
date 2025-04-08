@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.blog.mariadb.tempUsers.HashingHelper.hashPasswordWithSalt;
+import static com.example.blog.HashingHelper.hashPasswordWithSalt;
 
 @Service
 public class UserService {
