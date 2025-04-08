@@ -47,7 +47,6 @@ public class UserController {
     @PostMapping("/login")
     public void login(@RequestParam String username, @RequestParam String password, HttpServletRequest request){
         Optional<UserTable> optionalUserTable= userService.findByUsernamePassword(username, password);
-        User user = new User();
         if(optionalUserTable.isEmpty()){
             return;
         }

@@ -44,6 +44,20 @@ register_table:
 | expired_at     | datetime       | NO   |     | NULL                |                |
 +----------------+----------------+------+-----+---------------------+----------------+
 ```
+cookie_table:
+```
++-------------+----------------+------+-----+---------------------+----------------+
+| Field       | Type           | Null | Key | Default             | Extra          |
++-------------+----------------+------+-----+---------------------+----------------+
+| cookie_id   | int(11)        | NO   | PRI | NULL                | auto_increment |
+| user_id     | int(11)        | NO   | MUL | NULL                |                |
+| cookie_data | varbinary(255) | NO   | UNI | NULL                |                |
+| created_at  | datetime       | NO   |     | current_timestamp() |                |
+| expired_at  | datetime       | NO   |     | NULL                |                |
++-------------+----------------+------+-----+---------------------+----------------+
+
+```
+
 
 
 
