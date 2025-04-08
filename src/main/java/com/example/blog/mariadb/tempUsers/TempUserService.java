@@ -2,16 +2,11 @@ package com.example.blog.mariadb.tempUsers;
 
 import com.example.blog.mariadb.registerTable.RegisterTable;
 import com.example.blog.mariadb.registerTable.RegisterTableRepository;
-import com.example.blog.mariadb.users.User;
-import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

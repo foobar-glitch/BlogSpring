@@ -2,7 +2,7 @@ package com.example.blog.mariadb.tempUsers;
 
 import com.example.blog.mariadb.registerTable.RegisterTable;
 import com.example.blog.mariadb.registerTable.RegisterTableRepository;
-import com.example.blog.mariadb.users.User;
+import com.example.blog.mariadb.users.UserTable;
 import com.example.blog.mariadb.users.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -79,7 +79,7 @@ public class TempUserController {
 
         // Inserting temp user to user
         TempUser tempUser = registerTable.getTempUser();
-        User user = new User();
+        UserTable user = new UserTable();
         user.setEmail(tempUser.getEmail());
         user.setRole(tempUser.getRole());
         user.setSalt(tempUser.getSalt());

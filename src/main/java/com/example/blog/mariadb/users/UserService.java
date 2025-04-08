@@ -20,23 +20,23 @@ public class UserService {
 
 
     @Query("SELECT u FROM User u")
-    public List<User> getAllUsers() {
+    public List<UserTable> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long userId) {
+    public Optional<UserTable> getUserById(Long userId) {
         return userRepository.findById(userId);
     }
 
-    public User getUserByUsername(String username) {
+    public UserTable getUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
-    public User getUserByEmail(String email){
+    public UserTable getUserByEmail(String email){
         return userRepository.findByEmail(email);
     }
 
-    public User saveUser(User user) {
+    public UserTable saveUser(UserTable user) {
         return userRepository.save(user);
     }
 
@@ -45,13 +45,13 @@ public class UserService {
     }
 
 
-    public Optional<User> findByUsernamePassword(String username, String password) {
-        User user = userRepository.findByUsername(username);
+    public Optional<UserTable> findByUsernamePassword(String username, String password) {
+        UserTable user = userRepository.findByUsername(username);
         if (user == null) {
             return Optional.empty();
         }
         String passwordHash = hashPasswordWithSalt(password, user.getSalt());
-        List<User> users = userRepository.findByUsernameAndPassword(username, passwordHash);
+        List<UserTable> users = userRepository.findByUsernameAndPassword(username, passwordHash);
         return (users != null && !users.isEmpty()) ? Optional.of(users.get(0)) : Optional.empty();
     }
 

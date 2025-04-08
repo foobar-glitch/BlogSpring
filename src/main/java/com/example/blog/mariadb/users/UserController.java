@@ -4,9 +4,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,24 +18,34 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/users")
-    public List<User> getUsers() {
+    public List<UserTable> getUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/users/{id}")
-    public User getUser(@PathVariable Long id) {
+    public UserTable getUser(@PathVariable Long id) {
         return userService.getUserById(id).orElse(null);
     }
 
     @PostMapping("/users/create")
-    public User createUser(@RequestBody User user) {
+    public UserTable createUser(@RequestBody UserTable user) {
         return userService.saveUser(user);
     }
 
 
     @PostMapping("/login")
-    public Optional<User> login(@RequestParam String username, @RequestParam String password){
-        return userService.findByUsernamePassword(username, password);
+    public User login(@RequestParam String username, @RequestParam String password){
+        Optional<UserTable> optionalUserTable= userService.findByUsernamePassword(username, password);
+        User user = new User();
+        if(optionalUserTable.isEmpty()){
+            return user;
+        }
+        UserTable userTable = optionalUserTable.get();
+        user.setUsername(userTable.getUsername());
+        user.setRole(userTable.getRole());
+        user.setEmail(userTable.getEmail());
+
+        return user;
     }
 
 
