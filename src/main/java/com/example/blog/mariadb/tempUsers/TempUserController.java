@@ -6,6 +6,7 @@ import com.example.blog.mariadb.users.UserTable;
 import com.example.blog.mariadb.users.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,14 +33,14 @@ public class TempUserController {
      * Registers User to the temporary database
      */
     @PostMapping("/register")
-    public void register(@RequestParam String username,
+    public ResponseEntity<String> register(@RequestParam String username,
                          @RequestParam String email,
                          @RequestParam String password,
                          @RequestParam String confirmPassword
     ){
         if(!password.equals(confirmPassword)){
             System.out.println("Passwords do not match");
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Passwords do not match",HttpStatus.FORBIDDEN);
         }
         if(userService.getUserByUsername(username) != null){
             System.out.println("User already exists");
@@ -56,17 +57,18 @@ public class TempUserController {
         }
 
         tempUserService.addUserWithPasswordSaltAndRole(username, email, password, "user");
+        return new ResponseEntity<>("Check Register Token",HttpStatus.OK);
     }
 
 
     @GetMapping("/register/validate")
-    public void validateToken(@RequestParam String token){
+    public ResponseEntity<String> validateToken(@RequestParam String token){
         String hashedToken = hashValue(new BigInteger(token, 16).toByteArray());
 
         RegisterTable registerTable = registerTableService.findByRegisterToken(hashedToken);
         if(registerTable == null){
             System.out.println("This entry does not exist");
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("This entry does not exist",HttpStatus.FORBIDDEN);
         }
 
         //check table time...
@@ -74,7 +76,7 @@ public class TempUserController {
         if(registerTable.getExpiredAt().isBefore(currentTime)){
             System.out.println("Register Entry expired");
             registerTableService.delete(registerTable);
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Register Entry expired",HttpStatus.FORBIDDEN);
         }
 
         // Inserting temp user to user
@@ -91,7 +93,7 @@ public class TempUserController {
         userService.saveUser(user);
         registerTableService.delete(registerTable);
         tempUserService.deleteUser(tempUser.getTempUserId());
-
+        return new ResponseEntity<>("User Created successfully",HttpStatus.OK);
     }
 
 
