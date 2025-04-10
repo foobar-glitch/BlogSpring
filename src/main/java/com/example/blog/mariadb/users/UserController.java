@@ -122,7 +122,7 @@ public class UserController {
 
     //Authenticate using cookie
     @GetMapping("/authenticate")
-    public User authenticate(HttpServletRequest request){
+    public ResponseEntity<User> authenticate(HttpServletRequest request){
         LocalDateTime currentTime = LocalDateTime.now();
         String cookie = readCookie(request);
         if(cookie == null){
@@ -140,7 +140,7 @@ public class UserController {
         if(currentTime.isAfter(cookieTable.getExpiredAt())){
             cookieTableService.deleteById(cookieTable.getCookieId());
             System.out.println("Cookie expired");
-            return null;
+            return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
         }
 
 
@@ -150,7 +150,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
         UserTable userTable = optionalUserTable.get();
-        return userTable.getUser();
+        return new ResponseEntity<>(userTable.getUser(), HttpStatus.OK);
     }
 
     @PostMapping("/forgot")
@@ -175,7 +175,7 @@ public class UserController {
     }
 
     @PostMapping("/reset-password")
-    public  ResponseEntity<String> resetUser(@RequestParam String token, String password, String confirmPassword){
+    public ResponseEntity<String> resetUser(@RequestParam String token, String password, String confirmPassword){
         if(!Objects.equals(password, confirmPassword)){
             return new ResponseEntity<>("Passwords dont match", HttpStatus.BAD_REQUEST);
         }
