@@ -55,8 +55,21 @@ cookie_table:
 | created_at  | datetime       | NO   |     | current_timestamp() |                |
 | expired_at  | datetime       | NO   |     | NULL                |                |
 +-------------+----------------+------+-----+---------------------+----------------+
+```
+reset_table
+```
++-------------+----------------+------+-----+---------------------+----------------+
+| Field       | Type           | Null | Key | Default             | Extra          |
++-------------+----------------+------+-----+---------------------+----------------+
+| reset_id    | int(11)        | NO   | PRI | NULL                | auto_increment |
+| user_id     | int(11)        | NO   | MUL | NULL                |                |
+| reset_token | varbinary(255) | NO   | UNI | NULL                |                |
+| created_at  | datetime       | NO   |     | current_timestamp() |                |
+| expired_at  | datetime       | NO   |     | NULL                |                |
++-------------+----------------+------+-----+---------------------+----------------+
 
 ```
+
 
 
 

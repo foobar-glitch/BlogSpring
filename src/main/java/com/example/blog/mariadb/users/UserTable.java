@@ -90,5 +90,9 @@ public class UserTable {
         this.updatedAt = updatedAt;
     }
 
+    public User getUser(){
+        return new User(username, email, role);
+    }
+
 
 }

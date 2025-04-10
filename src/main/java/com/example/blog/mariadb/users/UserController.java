@@ -2,6 +2,8 @@ package com.example.blog.mariadb.users;
 
 import com.example.blog.mariadb.cookieTable.CookieTable;
 import com.example.blog.mariadb.cookieTable.CookieTableService;
+import com.example.blog.mariadb.resetTable.ResetTable;
+import com.example.blog.mariadb.resetTable.ResetTableService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,11 +15,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.example.blog.HashingHelper.bytesToHex;
-import static com.example.blog.HashingHelper.hashValue;
+import static com.example.blog.HashingHelper.*;
 
 @RestController
 public class UserController {
@@ -27,6 +29,9 @@ public class UserController {
 
     @Autowired
     private CookieTableService cookieTableService;
+
+    @Autowired
+    private ResetTableService resetTableService;
 
     @GetMapping("/users")
     public List<UserTable> getUsers() {
@@ -49,7 +54,7 @@ public class UserController {
                       HttpServletRequest request){
         Optional<UserTable> optionalUserTable= userService.findByUsernamePassword(username, password);
         if(optionalUserTable.isEmpty()){
-            return new ResponseEntity<>("User not found",HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("User and password dont match",HttpStatus.FORBIDDEN);
         }
         UserTable userTable = optionalUserTable.get();
         LocalDateTime currentTime = LocalDateTime.now();
@@ -73,7 +78,7 @@ public class UserController {
         cookieTable.setExpiredAt(currentTime.plusMinutes(10));
 
         cookieTableService.save(cookieTable);
-        return new ResponseEntity<>("Login successful", HttpStatus.OK);
+        return new ResponseEntity<>("Login successful", HttpStatus.ACCEPTED);
     }
 
 
@@ -145,11 +150,53 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
         UserTable userTable = optionalUserTable.get();
-        User user = new User();
-        user.setUsername(userTable.getUsername());
-        user.setRole(userTable.getRole());
-        user.setEmail(userTable.getEmail());
-        return user;
-
+        return userTable.getUser();
     }
+
+    @PostMapping("/forgot")
+    public ResponseEntity<String> forgotUser(@RequestParam String email){
+        LocalDateTime currentTime = LocalDateTime.now();
+        UserTable userTable = userService.getUserByEmail(email);
+        if(userTable == null){
+            return new ResponseEntity<>("E-Mail not found", HttpStatus.OK);
+        }
+
+        String resetToken = UUID.randomUUID().toString();
+        System.out.println("Forgot Password Token: " + resetToken);
+
+        ResetTable resetTable = new ResetTable();
+        resetTable.setUserId(userTable.getUserId());
+        resetTable.setResetToken(hashValue(resetToken.getBytes()));
+        resetTable.setCreatedAt(currentTime);
+        resetTable.setExpiredAt(currentTime.plusHours(24));
+        resetTableService.save(resetTable);
+
+        return new ResponseEntity<>(email, HttpStatus.OK);
+    }
+
+    @PostMapping("/reset-password")
+    public  ResponseEntity<String> resetUser(@RequestParam String token, String password, String confirmPassword){
+        if(!Objects.equals(password, confirmPassword)){
+            return new ResponseEntity<>("Passwords dont match", HttpStatus.BAD_REQUEST);
+        }
+        Optional<ResetTable> optionalResetTable = resetTableService.findByResetToken(hashValue(token.getBytes()));
+        if(optionalResetTable.isEmpty()){
+            return new ResponseEntity<>("Token not Found", HttpStatus.FORBIDDEN);
+        }
+        ResetTable resetTable =optionalResetTable.get();
+        Optional<UserTable> optionalUserTable = userService.getUserById(resetTable.getUserId());
+        if(optionalUserTable.isEmpty()){
+            return new ResponseEntity<>("UserID not found Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        UserTable userTable = optionalUserTable.get();
+        String newSalt = generateRandomSalt();
+        userTable.setSalt(newSalt);
+        userTable.setPasswordHash(hashPasswordWithSalt(password, newSalt));
+
+        // overwrite user
+        userService.saveUser(userTable);
+        resetTableService.deleteById(resetTable.getResetId());
+        return new ResponseEntity<>("Password Reset", HttpStatus.OK);
+    }
+
 }
